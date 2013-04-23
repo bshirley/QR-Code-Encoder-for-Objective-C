@@ -1,8 +1,47 @@
+//  Modified by Bill Shirley 4/22/13
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
 
 #import "QREncoder.h"
 
+#import "DataMatrix.h"
+#import <CommonCrypto/CommonCryptor.h>
+
+#include "QR_Encode.h"
+
+
+const static int BITS_PER_BYTE =    8;
+const static int BYTES_PER_PIXEL =  4;
+
+const static unsigned char WHITE =  0xff;
+
+void FLProviderReleaseData(void *info, const void *data, size_t size);
+
 
 @implementation QREncoder
+
++ (void)initialize {
+    // sanity check - these are being re-defined to shield Objective-C code from C++ code
+    NSAssert(QR_LEVEL_L == QREncodeLevelLow, @"must align with C++ code");
+    NSAssert(QR_LEVEL_M == QREncodeLevelMedium, @"must align with C++ code");
+    NSAssert(QR_LEVEL_Q == QREncodeLevelQuartile, @"must align with C++ code");
+    NSAssert(QR_LEVEL_H == QREncodeLevelHigh, @"must align with C++ code");
+
+    NSAssert(QR_VRESION_S == QREncodeVersionSmall, @"must align with C++ code");
+    NSAssert(QR_VRESION_M == QREncodeVersionMedium, @"must align with C++ code");
+    NSAssert(QR_VRESION_L == QREncodeVersionLarge, @"must align with C++ code");
+}
 
 + (NSData*)AESEncryptString:(NSString*)string withPassphrase:(NSString*)passphrase {
     if (passphrase.length>kCCKeySizeAES256) {
@@ -58,7 +97,7 @@
         for (int x=0; x<dimension; x++) {
             int v = encoder->m_byModuleData[y][x];
             bool bk = v==1;
-            [matrix set:bk x:y y:x];
+            [matrix setBoolValue:bk x:y y:x];
         }
     }
     
@@ -68,7 +107,10 @@
 
 }
 
-+ (DataMatrix*)encodeWithECLevel:(int)ecLevel version:(int)version string:(NSString *)string AESPassphrase:(NSString*)AESPassphrase {
++ (DataMatrix *)encodeWithECLevel:(QREncodeLevelType)ecLevel
+                         version:(QREncodeVersionType)version
+                          string:(NSString *)string
+                   AESPassphrase:(NSString *)AESPassphrase {
     NSData* encryptedString = [QREncoder AESEncryptString:string withPassphrase:AESPassphrase];
     const unsigned int len = [encryptedString length];
     char cstring[len + 1];
@@ -78,18 +120,20 @@
     return matrix;
 }
 
-+ (DataMatrix*)encodeWithECLevel:(int)ecLevel version:(int)version string:(NSString *)string {
++ (DataMatrix *)encodeWithECLevel:(QREncodeLevelType)ecLevel
+                         version:(QREncodeVersionType)version
+                          string:(NSString *)string {
     const char* cstring = [string cStringUsingEncoding:NSUTF8StringEncoding];
     DataMatrix* matrix = [QREncoder encodeCStringWithECLevel:ecLevel version:version cstring:cstring];
     return matrix;
 }
 
-+ (UIImage*)renderDataMatrix:(DataMatrix*)matrix imageDimension:(int)imageDimension {
++ (UIImage *)renderDataMatrix:(DataMatrix *)matrix imageDimension:(NSInteger)imageDimension {
     
     const int bitsPerPixel = BITS_PER_BYTE * BYTES_PER_PIXEL;
     const int bytesPerLine = BYTES_PER_PIXEL * imageDimension;
     const int rawDataSize = imageDimension * imageDimension * BYTES_PER_PIXEL;
-    unsigned char* rawData = (unsigned char*)malloc(rawDataSize);
+    unsigned char* rawData = (unsigned char *)malloc(rawDataSize);
     
     int matrixDimension = [matrix dimension];
     int pixelPerDot = imageDimension / matrixDimension;
@@ -111,7 +155,7 @@
             *(ptrData++) = transp;
         
         for(int mx=0; mx<matrixDimension; mx++) {
-            uint32_t clr = [matrix valueAt:mx y:my] ? black : white;
+            uint32_t clr = [matrix boolValueAt:mx y:my] ? black : white;
             // draw one pixel line of data
             for(int c=pixelPerDot; c>0; c--) 
                 *(ptrData++) = clr;

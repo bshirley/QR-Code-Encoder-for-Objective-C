@@ -22,6 +22,10 @@
 
 #import "DataMatrix.h"
 #import "QREncoder.h"
+#import "QRCodeViewController.h"
+
+static NSString* aVeryLongURL = @"http://thelongestlistofthelongeststuffatthelongestdomainnameatlonglast.com/";
+
 
 @implementation AppDelegate
 
@@ -32,38 +36,75 @@
     [super dealloc];
 }
 
-- (UIImage *)sampleQRCodeImage {
-    int qrcodeImageDimension = 250; // size of square
+- (UIImage *)sampleQRCodeImage:(NSString *)textToEncode {
+    NSInteger width = 250; // size of QR square
     
-    //the string can be very long
-    NSString* aVeryLongURL = @"http://thelongestlistofthelongeststuffatthelongestdomainnameatlonglast.com/";
-    
-    // encode the string into a matrix of bools,
+    // encode the string into a matrix of booleans,
     // TRUE for black dot and FALSE for white.
     // Let the encoder decide the error correction level and version
     DataMatrix* qrMatrix = [QREncoder encodeWithECLevel:QREncodeLevelAUTO
                                                 version:QREncodeVersionAUTO
-                                                 string:aVeryLongURL];
+                                                 string:textToEncode];
+    
+    width = [qrMatrix roundSizeUp:width];
     
     // render the matrix
     UIImage* qrcodeImage = [QREncoder renderDataMatrix:qrMatrix
-                                        imageDimension:qrcodeImageDimension];
+                                        imageDimension:width];
     return qrcodeImage;
 }
+
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     self.window = [[[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]] autorelease];
     
-    QRCodeEncoderDemoViewController *qrc = [[QRCodeEncoderDemoViewController alloc] initWithNibName:@"ViewController" bundle:nil];
-    
-    qrc.qrCodeImage = [self sampleQRCodeImage];
+    /* Use simple code view controller at launch of app:
+     * create controller,
+     * create example image,
+     * set the image in the controller,
+     * display the controller.
+     */
+    QRCodeViewController *qrc = [[QRCodeViewController alloc] init];
+    qrc.qrCodeImage = [self sampleQRCodeImage:aVeryLongURL];
     self.viewController = qrc;
-    self.window.rootViewController = self.viewController;
-    [self.window makeKeyAndVisible];
     [qrc release];
     
+    self.window.rootViewController = self.viewController;
+    
+    [self.window makeKeyAndVisible];
+    
+    [self setupComplexInterface:qrc.view];
     return YES;
+}
+
+
+- (void)setupComplexInterface:(UIView *)view {
+    /*
+     * Tapping the app will cause a new view hierarchy to be created.
+     * We will place a ViewControllers within a Navigation View Controller.
+     */
+    UIGestureRecognizer *gr = [[UITapGestureRecognizer alloc] initWithTarget:self
+                                                                      action:@selector(makeComplexInterface:)];
+    [view addGestureRecognizer:gr];
+}
+
+- (void)makeComplexInterface:(UITapGestureRecognizer *)tgr {
+    CGPoint point = [tgr locationInView:self.viewController.view];
+    
+    if (point.y < 150) {
+        NSString *random = [NSString stringWithFormat:@"The Date/Time is %@", [NSDate date]];
+        UIImage *image = [self sampleQRCodeImage:random];
+        self.viewController.qrCodeImage = image;
+        return;
+    }
+    
+    QRCodeViewController *qvc = [[QRCodeViewController alloc] init];
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:qvc];
+    
+    qvc.qrCodeImage = [self sampleQRCodeImage:aVeryLongURL];
+    [qvc release];
+    self.window.rootViewController = nav;
 }
 
 @end

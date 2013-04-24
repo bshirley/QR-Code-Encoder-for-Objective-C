@@ -24,6 +24,12 @@
 
 - (id)initWith:(NSInteger)dimension;
 
+/**
+ * These methods will round the size to the nearest multiple
+ * of the dimentionality of this data matrix.
+ */
+- (NSInteger)roundSizeUp:(NSInteger)imageSize;
+- (NSInteger)roundSizeDown:(NSInteger)imageSize;
 
 - (void)setBoolValue:(BOOL)value x:(NSInteger)x y:(NSInteger)y;
 - (BOOL)boolValueAt:(NSInteger)x y:(NSInteger)y;

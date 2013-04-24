@@ -3,6 +3,7 @@
 //  QRCodeEncoderDemo
 //
 //  Created by Yang Ming-Hsien on 4/21/12.
+//  Modified by Bill Shirley 4/22/13
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,14 +19,15 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "QRCodeEncoderDemoViewController.h"
 
 @class ViewController;
+@class QRCodeViewController;
+
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
-@property (strong, nonatomic) QRCodeEncoderDemoViewController *viewController;
+@property (strong, nonatomic) QRCodeViewController *viewController;
 
 @end

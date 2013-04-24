@@ -35,15 +35,37 @@
     return self;
 }
 
+- (NSInteger)roundSizeUp:(NSInteger)imageSize {
+    if (imageSize % dim == 0)
+        return imageSize;
+    
+    NSInteger multiple = imageSize / dim;
+    multiple += 1;
+    NSInteger value = multiple * dim;
+    return value;
+}
+
+- (NSInteger)roundSizeDown:(NSInteger)imageSize {
+    if (imageSize % dim == 0)
+        return imageSize;
+    
+    NSInteger multiple = imageSize / dim;
+    NSInteger value = multiple * dim;
+    return value;
+}
+
 - (NSInteger)dimension {
     return dim;
 }
 
-- (void)setBoolValue:(BOOL)value x:(NSInteger)x y:(NSInteger)y {
+- (void)setBoolValue:(BOOL)value
+                   x:(NSInteger)x
+                   y:(NSInteger)y {
     data[y][x] = value;
 }
 
-- (BOOL)boolValueAt:(NSInteger)x y:(NSInteger)y {
+- (BOOL)boolValueAt:(NSInteger)x
+                  y:(NSInteger)y {
     return data[y][x];
 }
 

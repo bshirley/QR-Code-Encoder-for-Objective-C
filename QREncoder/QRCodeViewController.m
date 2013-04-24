@@ -21,7 +21,7 @@
 #import "QRCodeViewController.h"
 
 @interface QRCodeViewController ()
-
+@property (nonatomic, retain) UIView *qrCodeView;
 @end
 
 @implementation QRCodeViewController
@@ -45,16 +45,42 @@
     [self _init];
 }
 
-- (void)viewDidLoad
-{
-    [super viewDidLoad];
-	// Do any additional setup after loading the view.
+- (void)loadView {
+    UIView *view = [[UIView alloc] initWithFrame:CGRectNull];
+    view.backgroundColor = [UIColor lightGrayColor];
+    self.view = view;
+    [view release];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (void)setQrCodeImage:(UIImage *)qrCodeImage {
+    if (_qrCodeImage == qrCodeImage)
+        return;
+    
+    if (qrCodeImage != nil) {
+        [_qrCodeImage release];
+        _qrCodeImage = [qrCodeImage retain];
+        [_qrCodeView removeFromSuperview];
+        
+        UIView *newView = [[UIImageView alloc] initWithImage:qrCodeImage];
+        newView.autoresizingMask =
+        UIViewAutoresizingFlexibleLeftMargin |
+        UIViewAutoresizingFlexibleRightMargin |
+        UIViewAutoresizingFlexibleTopMargin |
+        UIViewAutoresizingFlexibleBottomMargin;
+        
+        self.qrCodeView = newView;
+        [self.view addSubview:_qrCodeView];
+        _qrCodeView.center = self.view.center;
+    } else {
+        self.qrCodeImage = nil;
+        self.qrCodeView = nil;
+    }
 }
+
+- (void)viewDidAppear:(BOOL)animated {
+    self.view.frame = self.view.superview.bounds;
+    self.qrCodeView.center = self.view.center;
+}
+
 
 @end
